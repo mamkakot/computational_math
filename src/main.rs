@@ -1,46 +1,32 @@
+extern crate csv;
+extern crate ndarray;
+extern crate ndarray_csv;
+
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
+use ndarray::prelude::*;
+use ndarray_csv::{Array2Reader};
+use csv::ReaderBuilder;
+use ndarray::Array2;
 
 fn main() {
-    println!("Hello, world!");
-    let mut array = read_array_from_file(Path::new("src/input.txt"));
-    println!("{}", check_for_symmetry(&array));
+    let file = File::open("input.csv").unwrap();
+    let mut reader = ReaderBuilder::new().has_headers(false).from_reader(file);
+    let array_read: Array2<f64> = reader.deserialize_array2_dynamic().unwrap();
+    println!("{}", array_read);
 
-    let last_column_index = array.first().unwrap().len() - 1;
+    // получение последнего столбца в отдельный массив
+    let last_column_index = array_read.ncols() - 1;
+    let last_column = array_read.column(last_column_index);
+    println!("{}", last_column);
 
-    let col = array.iter()
-        .map(|s| s.iter().nth(last_column_index).unwrap())
-        .collect::<Vec<_>>();
+    // получение матрицы без последнего столбца
+    let matrix = array_read.slice(s![.., 0..last_column_index]);
 
-    println!("{:?}", col);
-}
-
-// чтение матрицы из указанного файла
-fn read_array_from_file(path: &Path) -> Vec<Vec<f64>> {
-    let mut f = BufReader::new(File::open(path).unwrap());
-
-    let mut s = String::new();
-    f.read_line(&mut s).unwrap();
-
-    let arr: Vec<Vec<f64>> = f.lines()
-        .map(|l| l.unwrap().split(char::is_whitespace)
-            .map(|number|  number.parse().unwrap_or(0.0))
-            .collect())
-        .collect();
-
-    println!("{:?}", arr);
-    arr
+    println!("{}", matrix.column(1));
+    println!("{}", check_for_symmetry(&matrix))
 }
 
 // проверка матрицы на симметричность
-fn check_for_symmetry(array: &Vec<Vec<f64>>) -> bool {
-    for i in 0..array.len() {
-        for j in 0..array.len() {
-            if array[i][j] != array[j][i] {
-                return false;
-            }
-        }
-    };
-    true
+fn check_for_symmetry(matrix: &ArrayView<f64, Dim<[usize; 2]>>) -> bool {
+    matrix == matrix.t()
 }
