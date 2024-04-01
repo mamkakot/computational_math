@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'computational_math'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=computational_math",
+                    "--package=computational_math"
+                ],
+                "filter": {
+                    "name": "computational_math",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'computational_math'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=computational_math",
+                    "--package=computational_math"
+                ],
+                "filter": {
+                    "name": "computational_math",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
