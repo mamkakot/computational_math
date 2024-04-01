@@ -7,6 +7,7 @@ use ndarray::prelude::*;
 use ndarray_csv::{Array2Reader};
 use csv::ReaderBuilder;
 use ndarray::Array2;
+use num::complex::Complex;
 
 fn main() {
     let file = File::open("input.csv").unwrap();
@@ -35,19 +36,37 @@ fn main() {
         return;
     }
 
-    let mut g: Vec<f64> = Vec::new();
+    let mut g: Array2<Complex<f64>> = Array2::zeros((matrix.len(), matrix.len()));
 
     for ((i, j), value) in matrix.indexed_iter() {
         if i == j {
-            println!("{}", value.sqrt());
-            g.push(value.sqrt());
+            if (i == 0) {
+                let g_1_1 = if (*value > 0.0) { Complex::new(value.sqrt(), 0.0) } else { Complex::new(0.0, value.sqrt()) };
+                g[[i, j]] = g_1_1;
+                continue;
+            }
+            let g_i_i = (value - squared_sum_under_main_diagonal(matrix)).sqrt();
+            g[[i, i]] = g_i_i;
             continue;
         }
         if j > i {
+            g[[i, j]] = Complex::new(0.0, 0.0);
             continue;
         }
         println!("{}", value);
-        g.push((*value - g.iter().map(|el| el.powi(2)).sum::<f64>()));
+        g[[i, j]] = Complex::new(*value - g.iter().map(|el| el.powi(2)).sum::<f64>(), 0.0);
     }
     println!("{:?}", g);
+}
+
+fn squared_sum_under_main_diagonal(matrix: ArrayView<f64, Ix2>) -> Complex<f64> {
+    let mut sum = Complex::new(0.0, 0.0);
+    for i in 0..(matrix.dim().0) {
+        for j in 0..i {
+            println!("{}", i);
+            println!("{}", j);
+            sum += matrix[[i, j]].powi(2);
+        }
+    }
+    sum
 }
